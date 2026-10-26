@@ -16,15 +16,17 @@ export const variableParser = varDeclare.chain(matchedValue => {
   });
 });
 
-variableParser.fork(
-  raw,
-  (errorMsg, parsingState) => {
-    console.log(errorMsg);
-    console.log(parsingState);
-    return;
-  },
-  (result, parsingState) => {
-    console.log(parsingState);
-    return result.value;
-  }
-);
+export function variableParserFn(raw) {
+  variableParser.fork(
+    raw,
+    (errorMsg, parsingState) => {
+      console.log(errorMsg);
+      console.log(parsingState);
+      return;
+    },
+    (result, parsingState) => {
+      console.log(parsingState);
+      return result.value;
+    }
+  );
+}
