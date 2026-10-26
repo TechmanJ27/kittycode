@@ -11,8 +11,6 @@ twink - if
 uwu - 
 '~' - Assign values to a variable
 '' - Strings 
-meow exitCode~'meow'
-gbt~exitCode
 >w<
 ^w^
 !

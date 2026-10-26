@@ -1,5 +1,6 @@
 import { str, char, sequenceOf, regex, optionalWhitespace, recursiveParser } from 'arcsecond';
 import { value } from './main.js';
+import {expect} from './errors.js';
 
 export const varDeclare = sequenceOf([
   str('meow'),
@@ -13,15 +14,11 @@ const assignment = sequenceOf([
   optionalWhitespace,
 ]);
 
-export const variableParser = varDeclare.chain(() => {
-  return varName.chain(name => {
-    return assignment.chain(() => {
-      
-      return recursiveParser(() => value).map(val => {
+const keywordGap = regex(/^\s+/);
 
-        const formattedValue = Array.isArray(val) ? val.flat(Infinity).join('') : val;
-        return `let ${name} = ${formattedValue};`;
-      });
-    });
-  });
-});
+export const variableParser = varDeclare.chain(() =>
+  expect(keywordGap, "'meow' must be followed by a space and a variable name").chain(() =>
+  expect(varName, "Expected a variable name after 'meow'").chain(name =>
+  expect(assignment, `Expected '~' after '${name}' (e.g. meow ${name}~5)`).chain(() =>
+  expect(value, "Expected a digit or a 'quoted string' after '~'")
+    .map(val => `let ${name} = ${val};`)))));

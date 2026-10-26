@@ -1,16 +1,19 @@
-import fs, { mkdirSync, readFileSync } from 'fs';
+import fs, { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
-import { choice, digit, char, letters, sequenceOf, many, optionalWhitespace } from 'arcsecond';
+import { choice, digit, char, many, optionalWhitespace, regex, sequenceOf, endOfInput } from 'arcsecond';
 import { variableParser } from './varParser.js';
 import { returnStatement } from './returnParser.js';
+import {expect, KittyError, formatError} from './errors.js'
+
+export const identifier = regex(/^[a-zA-Z_][a-zA-Z0-9_]*/);
 
 export const value = choice([
   digit,
   sequenceOf([
     char('\''),
-    letters,
+    regex(/^[^']*/),
     char('\''), 
-  ]),
+  ]).map(([_, text]) => `'${text}'`),
 ]);
 
 const statement = choice([
@@ -26,6 +29,12 @@ const fileParser = many(
   ]).map(([_, stmt]) => stmt)
 ).map(statements => statements.join('\n'));
 
+const program = sequenceOf([
+  fileParser,
+  optionalWhitespace,
+  expect(endOfInput, "Unrecognized statement"),
+]).map(([code]) => code);
+
 export function getKittyConfig() {
   const jsonConfig = readFileSync('./kittyconfig.json', 'utf-8');
   return JSON.parse(jsonConfig);
@@ -39,7 +48,7 @@ export function* readAllFiles(dir: string): Generator<string> {
   for (const file of files) {
     const resPath = path.join(dir, file.name);
     
-    if (kittyConfig.outDir && resPath.includes(kittyConfig.outDir)) continue;
+    if (kittyConfig?.outDir && resPath.includes(kittyConfig.outDir)) continue;
 
     if (file.isDirectory()) {
       yield* readAllFiles(resPath);
@@ -50,40 +59,45 @@ export function* readAllFiles(dir: string): Generator<string> {
 }
 
 export default function compileKittyCode() {
-  for (const file of readAllFiles(kittyConfig.rootDir ?? process.cwd())) {
-    if (getKittyConfig().compilerOptions.exclude?.includes(file)) continue;
+  const excludeList = kittyConfig?.exclude ?? [];
+  let failed = 0;
+
+  for (const file of readAllFiles(kittyConfig?.rootDir)) {
+    if (excludeList.includes(file)) continue;
     
     if (path.extname(file) === '.myaw') {
       const raw = readFileSync(file, 'utf-8');
       
-      const dirName = path.resolve(path.dirname(file), kittyConfig.outDir ?? './dist');
+      const dirName = path.resolve(path.dirname(file), kittyConfig?.outDir ?? './dist');
+      const result = kittyCodeParse(raw, file);
+      if (!result.ok) { console.error(result.message); failed++; continue; }
       mkdirSync(dirName, { recursive: true });
-      
-      const content = kittyCodeParse(raw);
     
       const outputFileName = path.basename(file, '.myaw') + '.js';
       const destination = path.join(dirName, outputFileName);
       
-      fs.writeFile(destination, content, err => {
-        if (err) {
-          console.error(`Failed to write to ${destination}:`, err);
-        }
-      });
+
+      try {
+        writeFileSync(destination, result.code, 'utf-8');
+      } catch (err) {
+        console.error(`Failed to write to ${destination}:`, err);
+      }
+      return failed === 0;
     }
   }
 }
 
-export function kittyCodeParse(raw: string): string {
-  
-  return fileParser.fork(
-    raw,
-    (errorMsg, parsingState) => {
-      console.error("Compilation Error:\n", errorMsg);
-      console.error("State at failure:\n", parsingState);
-      return `/* Compilation failed due to parsing error */`;
-    },
-    (result) => {
-      return result;
-    }
-  );
+export type CompileResult = { ok: true; code: string } | { ok: false; message: string };
+
+export function kittyCodeParse(raw: string, file = '<input>'): CompileResult {
+  try {
+    return program.fork(
+      raw,
+      (errorMsg): CompileResult => ({ ok: false, message: `${file} - ${errorMsg}` }), // fallback
+      (code): CompileResult => ({ ok: true, code }),
+    );
+  } catch (err) {
+    if (err instanceof KittyError) return { ok: false, message: formatError(err, raw, file) };
+    throw err; 
+  }
 }
