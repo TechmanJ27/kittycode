@@ -24,7 +24,7 @@ export function variableParserFn(raw: string) {
       console.log(parsingState);
       return;
     },
-    (result, parsingState) => {
+    (result: object, parsingState) => {
       console.log(parsingState);
       return result.value;
     }
