@@ -48,7 +48,7 @@ export default function compileKittyCode() {
   }
 }
 
-export function kittyCodeParse(raw) {
+export function kittyCodeParse(raw: string) {
   variableParserFn(raw);
   returnParserFn(raw);
 }
