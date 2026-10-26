@@ -6,7 +6,7 @@ mraow - Function declaration
 mrow - 
 mrpp - 
 owo - 
-paw - 
+paw - console.log
 rawr - 
 twink - if
 uwu - 

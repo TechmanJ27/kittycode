@@ -1,9 +1,10 @@
 import fs, { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
-import { choice, digit, char, many, optionalWhitespace, regex, sequenceOf, endOfInput } from 'arcsecond';
+import { choice, digit, char, many, optionalWhitespace, regex, sequenceOf, endOfInput, recursiveParser, str, Parser } from 'arcsecond';
 import { variableParser } from './variables.js';
 import { returnStatement } from './return.js';
 import {commentParser, multilineCommentParser} from './comments.js'
+import {ifStatementParser} from './ifStatements.js';
 import {expect, KittyError, formatError} from './errors.js'
 
 export const identifier = regex(/^[a-zA-Z_][a-zA-Z0-9_]*/);
@@ -17,12 +18,29 @@ export const value = choice([
   ]).map(([_, text]) => `'${text}'`),
 ]);
 
-const statement = choice([
+export const comparisonOperator = choice([
+  str('=='),
+  str('!='),
+  str('>='),
+  str('<='),
+  char('>'),
+  char('<'),
+]);
+
+export const logicalOperator = choice([
+  str('and'),
+  str('or'),
+]);
+
+export const statement = choice([
   variableParser,
   returnStatement,
   commentParser,
-  multilineCommentParser
+  multilineCommentParser,
+  ifStatementParser
 ]);
+
+export const statements: Parser<any, any, any> = recursiveParser(() => many(statement));
 
 const fileParser = many(
   sequenceOf([
