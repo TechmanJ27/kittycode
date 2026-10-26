@@ -38,7 +38,7 @@ export default function compileKittyCode() {
     if (path.extname(file) === '.myaw') {
       const raw = readFileSync(file);
       const dirName = path.resolve(path.dirname(file), kittyConfig.outDir);
-      const content = kittyCodeParse(raw);
+      const content = kittyCodeParse(raw.toString());
       mkdirSync(dirName);
         fs.writeFile(path.join(dirName, file), content, err => {
         if (err) {
