@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 const program = new Command();
-import {compileKittyCode} from 'main.js';
+import {compileKittyCode} from './main.js';
 
 program
   .name('meowcode')
