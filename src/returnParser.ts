@@ -1,13 +1,5 @@
 import { str, char, letters, sequenceOf, digits, fail} from 'arcsecond';
-
-export const value = choice([
-  digit,
-  sequenceOf([
-    char('\''),
-    letters,
-    char('\''), 
-  ]),
-]);
+import {value} from './main.js';
 
 const returnStatement = sequenceOf([
   str('gbt'),
