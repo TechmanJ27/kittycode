@@ -1,7 +1,8 @@
 import fs, { mkdirSync, readFileSync } from 'fs';
 import path from 'path';
 import {choice, digit, char, letters, sequenceOf} from 'arcsecond';
-import {variableParserFn} from 'varParser.js';
+import {variableParserFn} from './varParser.js';
+import {returnParserFn} from './returnParser.js';
 
 export const value = choice([
   digit,
@@ -48,5 +49,6 @@ export default function compileKittyCode() {
 }
 
 export function kittyCodeParse(raw) {
-  variableParserFn();
+  variableParserFn(raw);
+  returnParserFn(raw);
 }
