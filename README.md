@@ -2,6 +2,7 @@ gbt - "Kills" the program (return)
 meow - Initialize a variable
 mew - 
 miau - 
+mraow - Function declaration
 mrow - 
 mrpp - 
 owo - 

@@ -1,8 +1,9 @@
 import fs, { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import { choice, digit, char, many, optionalWhitespace, regex, sequenceOf, endOfInput } from 'arcsecond';
-import { variableParser } from './varParser.js';
-import { returnStatement } from './returnParser.js';
+import { variableParser } from './variables.js';
+import { returnStatement } from './return.js';
+import {commentParser} from './comments.js'
 import {expect, KittyError, formatError} from './errors.js'
 
 export const identifier = regex(/^[a-zA-Z_][a-zA-Z0-9_]*/);
@@ -18,7 +19,8 @@ export const value = choice([
 
 const statement = choice([
   variableParser,
-  returnStatement
+  returnStatement,
+  commentParser
 ]);
 
 const fileParser = many(
@@ -61,31 +63,44 @@ export function* readAllFiles(dir: string): Generator<string> {
 export default function compileKittyCode() {
   const excludeList = kittyConfig?.exclude ?? [];
   let failed = 0;
+  
+  const projectRoot = process.cwd();
+  const rootDirAbs = path.resolve(projectRoot, kittyConfig?.rootDir ?? './src');
+  const outDirAbs = path.resolve(projectRoot, kittyConfig?.outDir ?? './dist');
 
-  for (const file of readAllFiles(kittyConfig?.rootDir)) {
+  for (const file of readAllFiles(rootDirAbs)) {
     if (excludeList.includes(file)) continue;
     
     if (path.extname(file) === '.myaw') {
       const raw = readFileSync(file, 'utf-8');
       
-      const dirName = path.resolve(path.dirname(file), kittyConfig?.outDir ?? './dist');
+      const relativeToRoot = path.relative(rootDirAbs, path.dirname(file));
+      
+      const dirName = path.resolve(outDirAbs, relativeToRoot);
+      
       const result = kittyCodeParse(raw, file);
-      if (!result.ok) { console.error(result.message); failed++; continue; }
+      if (!result.ok) { 
+        console.error(result.message); 
+        failed++; 
+        continue; 
+      }
+      
       mkdirSync(dirName, { recursive: true });
     
       const outputFileName = path.basename(file, '.myaw') + '.js';
       const destination = path.join(dirName, outputFileName);
-      
 
       try {
         writeFileSync(destination, result.code, 'utf-8');
       } catch (err) {
         console.error(`Failed to write to ${destination}:`, err);
       }
+      
       return failed === 0;
     }
   }
 }
+
 
 export type CompileResult = { ok: true; code: string } | { ok: false; message: string };
 
@@ -93,7 +108,7 @@ export function kittyCodeParse(raw: string, file = '<input>'): CompileResult {
   try {
     return program.fork(
       raw,
-      (errorMsg): CompileResult => ({ ok: false, message: `${file} - ${errorMsg}` }), // fallback
+      (errorMsg): CompileResult => ({ ok: false, message: `${file} - ${errorMsg}` }),
       (code): CompileResult => ({ ok: true, code }),
     );
   } catch (err) {
