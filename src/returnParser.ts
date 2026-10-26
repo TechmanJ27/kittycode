@@ -8,8 +8,8 @@ const returnStatement = sequenceOf([
   char(')')
 ]).map(x => x[2]);
 
-export function returnParserFn(raw) {
-  returnStatement.fork(
+export function returnParserFn(raw: string) {
+  return returnStatement.fork(
     raw,
     (errorMsg, parsingState) => {
       console.log(errorMsg);
