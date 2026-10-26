@@ -20,19 +20,18 @@ export function* readAllFiles(dir: string): Generator<string> {
   }
 }
 
-for (const file of readAllFiles(kittyConfig.rootDir ?? process.cwd())) {
-  if (getKittyConfig().compilerOptions.exclude.includes(file)) continue;
-  if (path.extname(file) === '.myaw') {
-    const raw = readFileSync(file);
-    const dirName = path.resolve(path.dirname(file), kittyConfig.outDir);
-    const content = kittyCodeParse(content);
-    mkdirSync(dirName);
-      fs.writeFile(path.join(dirName, file), content, err => {
-      if (err) {
-        console.error(err);
-      } else {
-        
-      }
-    });
+export default function compileKittyCode() {
+  for (const file of readAllFiles(kittyConfig.rootDir ?? process.cwd())) {
+    if (getKittyConfig().compilerOptions.exclude.includes(file)) continue;
+    if (path.extname(file) === '.myaw') {
+      const raw = readFileSync(file);
+      const dirName = path.resolve(path.dirname(file), kittyConfig.outDir);
+      const content = kittyCodeParse(content);
+      mkdirSync(dirName);
+        fs.writeFile(path.join(dirName, file), content, err => {
+        if (err) {
+          console.error(err);
+        }});
+    }
   }
 }
