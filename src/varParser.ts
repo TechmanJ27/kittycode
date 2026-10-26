@@ -16,7 +16,7 @@ export const variableParser = varDeclare.chain(matchedValue => {
   });
 });
 
-export function variableParserFn(raw) {
+export function variableParserFn(raw: string) {
   return variableParser.fork(
     raw,
     (errorMsg, parsingState) => {
