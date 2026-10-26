@@ -1,8 +1,9 @@
 import fs, { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import { choice, digit, char, many, optionalWhitespace, regex, sequenceOf, endOfInput } from 'arcsecond';
-import { variableParser } from './varParser.js';
-import { returnStatement } from './returnParser.js';
+import { variableParser } from './variables.js';
+import { returnStatement } from './return.js';
+import { commentParser, multilineCommentParser } from './comments.js';
 import { expect, KittyError, formatError } from './errors.js';
 export const identifier = regex(/^[a-zA-Z_][a-zA-Z0-9_]*/);
 export const value = choice([
@@ -15,7 +16,9 @@ export const value = choice([
 ]);
 const statement = choice([
     variableParser,
-    returnStatement
+    returnStatement,
+    commentParser,
+    multilineCommentParser
 ]);
 const fileParser = many(sequenceOf([
     optionalWhitespace,
@@ -49,12 +52,16 @@ export function* readAllFiles(dir) {
 export default function compileKittyCode() {
     const excludeList = kittyConfig?.exclude ?? [];
     let failed = 0;
-    for (const file of readAllFiles(kittyConfig?.rootDir)) {
+    const projectRoot = process.cwd();
+    const rootDirAbs = path.resolve(projectRoot, kittyConfig?.rootDir ?? './src');
+    const outDirAbs = path.resolve(projectRoot, kittyConfig?.outDir ?? './dist');
+    for (const file of readAllFiles(rootDirAbs)) {
         if (excludeList.includes(file))
             continue;
         if (path.extname(file) === '.myaw') {
             const raw = readFileSync(file, 'utf-8');
-            const dirName = path.resolve(path.dirname(file), kittyConfig?.outDir ?? './dist');
+            const relativeToRoot = path.relative(rootDirAbs, path.dirname(file));
+            const dirName = path.resolve(outDirAbs, relativeToRoot);
             const result = kittyCodeParse(raw, file);
             if (!result.ok) {
                 console.error(result.message);
@@ -76,8 +83,7 @@ export default function compileKittyCode() {
 }
 export function kittyCodeParse(raw, file = '<input>') {
     try {
-        return program.fork(raw, (errorMsg) => ({ ok: false, message: `${file} - ${errorMsg}` }), // fallback
-        (code) => ({ ok: true, code }));
+        return program.fork(raw, (errorMsg) => ({ ok: false, message: `${file} - ${errorMsg}` }), (code) => ({ ok: true, code }));
     }
     catch (err) {
         if (err instanceof KittyError)

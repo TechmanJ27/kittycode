@@ -3,7 +3,7 @@ import path from 'path';
 import { choice, digit, char, many, optionalWhitespace, regex, sequenceOf, endOfInput } from 'arcsecond';
 import { variableParser } from './variables.js';
 import { returnStatement } from './return.js';
-import {commentParser} from './comments.js'
+import {commentParser, multilineCommentParser} from './comments.js'
 import {expect, KittyError, formatError} from './errors.js'
 
 export const identifier = regex(/^[a-zA-Z_][a-zA-Z0-9_]*/);
@@ -20,7 +20,8 @@ export const value = choice([
 const statement = choice([
   variableParser,
   returnStatement,
-  commentParser
+  commentParser,
+  multilineCommentParser
 ]);
 
 const fileParser = many(
