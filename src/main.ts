@@ -1,5 +1,15 @@
 import fs, { mkdirSync, readFileSync } from 'fs';
 import path from 'path';
+import {choice, digit, char, letters, sequenceOf} from 'arcsecond';
+
+export const value = choice([
+  digit,
+  sequenceOf([
+    char('\''),
+    letters,
+    char('\''), 
+  ]),
+])
 
 export function getKittyConfig() {
   const jsonConfig = readFileSync('./kittyconfig.json', 'utf-8');
