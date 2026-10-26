@@ -1,22 +1,36 @@
-import { char, letters, sequenceOf, digits, fail} from 'arcsecond';
+import { str, char, letters, sequenceOf, digits, fail} from 'arcsecond';
 
-const lettersThenSpace = sequenceOf([
-  letters,
-  char(' ')
-]).map(x => x[0]);
+const varDeclare = sequenceOf([
+  str('meow'),
+  char(' '),
+]).map(x => ({
+  value: 'let '
+}));
 
-const newParser = lettersThenSpace.chain(matchedValue => {
-  switch (matchedValue) {
-    case 'number': return digits;
+const varName = regex(/^[a-zA-Z_][a-zA-Z_0-9]*$/);
 
-    case 'string': return letters;
-
-    case 'bracketed': return sequenceOf([
-      char('('),
-      letters,
-      char(')')
-    ]).map(values => values[1]);
-
-    default: return fail(`Unrecognized command: ${matchedValue}`);
-  }
+const variableParser = varDeclare.chain(matchedValue => {
+  const variableParser = varName.chain(matchedValue => {
+    return choice([
+        digit,
+        sequenceOf([
+          char('\''),
+          letters,
+          char('\''), 
+        ]),
+      ]);
+  });
 });
+
+variableParser.fork(
+  raw,
+  (errorMsg, parsingState) => {
+    console.log(errorMsg);
+    console.log(parsingState);
+    return;
+  },
+  (result, parsingState) => {
+    console.log(parsingState);
+    return result.value;
+  }
+);
