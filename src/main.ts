@@ -12,7 +12,6 @@ export function* readAllFiles(dir: string): Generator<string> {
   const files = fs.readdirSync(dir, { withFileTypes: true });
 
   for (const file of files) {
-    if (getKittyConfig().compilerOptions.exclude.includes(file)) continue;
     if (file.isDirectory()) {
       yield* readAllFiles(path.join(dir, file.name));
     } else {
@@ -22,9 +21,18 @@ export function* readAllFiles(dir: string): Generator<string> {
 }
 
 for (const file of readAllFiles(kittyConfig.rootDir ?? process.cwd())) {
+  if (getKittyConfig().compilerOptions.exclude.includes(file)) continue;
   if (path.extname(file) === '.myaw') {
     const raw = readFileSync(file);
-    const dirName = path.join('../', kittyConfig.outDir, path.dirname(file));
+    const dirName = path.resolve(path.dirname(file), kittyConfig.outDir);
+    const content = kittyCodeParse(content);
     mkdirSync(dirName);
+      fs.writeFile(path.join(dirName, file), content, err => {
+      if (err) {
+        console.error(err);
+      } else {
+        
+      }
+    });
   }
 }
