@@ -9,7 +9,7 @@ program
 
 program.command('compile')
   .description('Compile the .myaw files from the configured folder to .js files')
-  .action((str, options) => {
+  .action(() => {
     compileKittyCode();
     console.log('KittyCode Compiled Successfully');
   });

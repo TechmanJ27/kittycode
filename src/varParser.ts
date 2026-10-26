@@ -1,32 +1,27 @@
-import { str, char, letters, sequenceOf, digits, fail, regex } from 'arcsecond';
-import {value} from './main.js';
+import { str, char, sequenceOf, regex, optionalWhitespace, recursiveParser } from 'arcsecond';
+import { value } from './main.js';
 
 export const varDeclare = sequenceOf([
   str('meow'),
-  char(' '),
-]).map(x => ({
-  value: 'let '
-}));
+]);
 
-export const varName = regex(/^[a-zA-Z_][a-zA-Z_0-9]*$/);
+export const varName = regex(/^[a-zA-Z_][a-zA-Z_0-9]*/);
 
-export const variableParser = varDeclare.chain(matchedValue => {
-  const variableParser = varName.chain(matchedValue => {
-    return value;
+const assignment = sequenceOf([
+  optionalWhitespace,
+  char('~'),
+  optionalWhitespace,
+]);
+
+export const variableParser = varDeclare.chain(() => {
+  return varName.chain(name => {
+    return assignment.chain(() => {
+      
+      return recursiveParser(() => value).map(val => {
+
+        const formattedValue = Array.isArray(val) ? val.flat(Infinity).join('') : val;
+        return `let ${name} = ${formattedValue};`;
+      });
+    });
   });
 });
-
-export function variableParserFn(raw: string) {
-  return variableParser.fork(
-    raw,
-    (errorMsg, parsingState) => {
-      console.log(errorMsg);
-      console.log(parsingState);
-      return;
-    },
-    (result: object, parsingState) => {
-      console.log(parsingState);
-      return result.value;
-    }
-  );
-}
