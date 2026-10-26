@@ -8,12 +8,9 @@ program
 
 program.command('compile')
   .description('Compile the .myaw files from the configured folder to .js files')
-  .argument('<string>', 'string to split')
-  .option('--first', 'display just the first substring')
-  .option('-s, --separator <char>', 'separator character', ',')
   .action((str, options) => {
-    const limit = options.first ? 1 : undefined;
-    console.log(str.split(options.separator, limit));
+    compileKittyCode();
+    console.log('KittyCode Compiled Successfully');
   });
 
 program.parse();
