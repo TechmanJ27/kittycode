@@ -1,11 +1,11 @@
 import { str, optionalWhitespace, sequenceOf, char, many, recursiveParser } from 'arcsecond'; 
 import { value, comparisonOperator, statements } from './main.js'; 
 
-export const booleanExpression = sequenceOf([ 
+export const booleanExpression = recursiveParser(() => sequenceOf([ 
   value, 
   comparisonOperator, 
   value 
-]); 
+]));
 
 export const ifStatementParser = sequenceOf([ 
   str('twink'), 

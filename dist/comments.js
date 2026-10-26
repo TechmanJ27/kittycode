@@ -14,5 +14,5 @@ export const multilineCommentParser = sequenceOf([
     optionalWhitespace,
     multilineCommentText,
     multilineCommentClose
-]).map(([marker, whitespace, text, close]) => `/*\n${text}]*/`);
+]).map(([marker, whitespace, text, close]) => `/*\n${text}*/`);
 //# sourceMappingURL=comments.js.map

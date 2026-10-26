@@ -1,5 +1,10 @@
-export declare const identifier: import("arcsecond").Parser<string, string, any>;
-export declare const value: import("arcsecond").Parser<string, string, any>;
+import { Parser } from 'arcsecond';
+export declare const identifier: Parser<string, string, any>;
+export declare const value: Parser<string, string, any>;
+export declare const comparisonOperator: Parser<string, string, any>;
+export declare const logicalOperator: Parser<string, string, any>;
+export declare const statement: Parser<string, string, any>;
+export declare const statements: Parser<any, any, any>;
 export declare function getKittyConfig(): any;
 export declare const kittyConfig: any;
 export declare function readAllFiles(dir: string): Generator<string>;

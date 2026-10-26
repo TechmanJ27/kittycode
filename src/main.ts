@@ -9,14 +9,14 @@ import {expect, KittyError, formatError} from './errors.js'
 
 export const identifier = regex(/^[a-zA-Z_][a-zA-Z0-9_]*/);
 
-export const value = choice([
+export const value = recursiveParser(() => choice([
   digit,
   sequenceOf([
     char('\''),
     regex(/^[^']*/),
     char('\''), 
   ]).map(([_, text]) => `'${text}'`),
-]);
+]));
 
 export const comparisonOperator = choice([
   str('=='),
