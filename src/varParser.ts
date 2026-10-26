@@ -1,4 +1,4 @@
-import { str, char, letters, sequenceOf, digits, fail} from 'arcsecond';
+import { str, char, letters, sequenceOf, digits, fail, regex } from 'arcsecond';
 import {value} from './main.js';
 
 export const varDeclare = sequenceOf([
@@ -17,7 +17,7 @@ export const variableParser = varDeclare.chain(matchedValue => {
 });
 
 export function variableParserFn(raw) {
-  variableParser.fork(
+  return variableParser.fork(
     raw,
     (errorMsg, parsingState) => {
       console.log(errorMsg);
